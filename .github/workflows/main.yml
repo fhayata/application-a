@@ -32,7 +32,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: ${{ matrix.directory }}
-          file: ${{ matrix.directory }}/codes/Dockerfile
+          file: ${{ matrix.directory }}Dockerfile
           push: true
           tags: ${{ matrix.image }}:${{ env.VERSION }}
 
