@@ -1,1 +1,56 @@
-echo "Test"
+name: Build&push Docker images to Docker Hub and make changes to the cluster
+
+on: 
+  push:
+    branches: 
+      - main
+
+jobs:
+  build_push_deploy:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - name: python-app
+            directory: ./
+            image: hayataf/projet-un
+    steps:
+      # Nous donne accès au code python de l'app
+      - name: Get python app code
+        uses: actions/checkout@v4
+      # Nous permet d'obtenir les 7 premiers caractères du hash du dernier commit
+      - name: Get the hash of the last commit for the tag of new images
+        run: echo "VERSION=$(echo $GITHUB_SHA | cut -c1-7)" >> $GITHUB_ENV
+      # Nous permet de nous connecter à Docker Hub
+      - name: Connect to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      # Nous permet de construire et pousser notre image dans le repertoire Docker Hub 
+      - name: Build and push the image ${{ matrix.name }}
+        uses: docker/build-push-action@v4
+        with:
+          context: ${{ matrix.directory }}
+          file: ${{ matrix.directory }}/codes/Dockerfile
+          push: true
+          tags: ${{ matrix.image }}:${{ env.VERSION }}
+
+
+  # Job pour mettre à jour l'infra
+  update_cluster:
+    needs: build_push_deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Update deployments
+        run: |
+          eval $(ssh-agent -s)
+          ssh-add - <<< "${{ secrets.GCP_PRIVATE_KEY }}"
+          git clone git@github.com:fhayata/Projet-un.git
+          NEW_TAG=$(echo $GITHUB_SHA | cut -c1-7)
+          sed -i "s|hayataf/projet-un\(:[a-zA-Z0-9_.-]*\)\?|hayataf/projet-un:${NEW_TAG}|g" k8s/python-app.yaml
+          git config --global user.name "Github Actions"
+          git config --global user.email "actions@github.com"
+          git add .
+          git commit -m "Update of images to deploy in kubernetes to $NEW_TAG"
+          git push origin main
