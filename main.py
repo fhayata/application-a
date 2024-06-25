@@ -15,5 +15,5 @@ def rand_str(taille:int):
     return random.choices(string.ascii_uppercase, k=taille)
 
 for i in range(0,10):
-    t = ''.join(rand_str(10))
+    t = ''.join(rand_str(20))
     print(f'{t} ========== >  {miroir_str(t)}')
