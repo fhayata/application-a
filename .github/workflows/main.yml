@@ -45,7 +45,7 @@ jobs:
       - name: Update deployments
         run: |
           eval $(ssh-agent -s)
-          ssh-add - <<< "${{ secrets.GCP_KEY }}"
+          ssh-add - <<< "${{ secrets.GCP_PRIVATE_KEY }}"
           git clone git@github.com:fhayata/projet-un.git
           NEW_TAG=$(echo $GITHUB_SHA | cut -c1-7)
           cd projet-un
