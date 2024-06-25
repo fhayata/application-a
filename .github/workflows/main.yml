@@ -48,9 +48,9 @@ jobs:
           ssh-add - <<< "${{ secrets.GCP_PRIVATE_KEY }}"
           git clone git@github.com:fhayata/projet-un.git
           NEW_TAG=$(echo $GITHUB_SHA | cut -c1-7)
-          sed -i "s|hayataf/projet-un\(:[a-zA-Z0-9_.-]*\)\?|hayataf/projet-un:${NEW_TAG}|g" /home/runner/work/application-a/application-a/projet-un/k8s/python-app.yaml
+          sed -i "s|hayataf/projet-un\(:[a-zA-Z0-9_.-]*\)\?|hayataf/projet-un:${NEW_TAG}|g" /home/runner/work/application-a/projet-un/k8s/python-app.yaml
           git config --global user.name "Github Actions"
           git config --global user.email "actions@github.com"
-          git add /home/runner/work/application-a/application-a/projet-un/
+          git add /home/runner/work/application-a/projet-un/
           git commit -m "Update of images to deploy in kubernetes to $NEW_TAG"
           git push origin main
